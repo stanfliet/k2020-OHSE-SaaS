@@ -1,0 +1,21 @@
+{
+  "startCommand": "npm start",
+  "buildCommand": "echo 'No build needed'",
+  "envVars": [
+    {
+      "key": "OPENAI_API_KEY"
+    },
+    {
+      "key": "SUPABASE_URL"
+    },
+    {
+      "key": "SUPABASE_ANON_KEY"
+    },
+    {
+      "key": "SUPABASE_SERVICE_KEY"
+    },
+    {
+      "key": "CORS_ORIGIN"
+    }
+  ]
+}

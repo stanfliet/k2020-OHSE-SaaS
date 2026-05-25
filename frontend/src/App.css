@@ -1,0 +1,144 @@
+.app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 280px;
+  overflow-y: auto;
+  background-color: #f9fafb;
+  transition: margin-left 0.3s ease;
+}
+
+.page-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.page-container h1 {
+  font-size: 2rem;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.page-container p {
+  color: #6b7280;
+  margin: 0 0 1.5rem 0;
+}
+
+.analysis-result {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.analysis-result h2 {
+  font-size: 1.25rem;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.code-block {
+  background: #1f2937;
+  color: #10b981;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.code-block pre {
+  margin: 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.generated-docs {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.generated-docs h2 {
+  font-size: 1.25rem;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.doc-item {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.doc-item summary {
+  font-weight: 500;
+  color: #374151;
+  padding: 0.5rem;
+}
+
+.doc-item:hover {
+  background: #f3f4f6;
+}
+
+.doc-content {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.doc-content pre {
+  background: #1f2937;
+  color: #10b981;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.info-text {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+
+.alert {
+  margin: -2rem -2rem 2rem -2rem;
+  border-radius: 0;
+}
+
+@media (max-width: 768px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .main-content {
+    margin-left: 0;
+    height: calc(100vh - 80px);
+  }
+
+  .page-container {
+    padding: 1rem;
+  }
+
+  .page-container h1 {
+    font-size: 1.5rem;
+  }
+}
