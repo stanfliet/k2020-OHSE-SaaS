@@ -1,0 +1,38 @@
+{
+  "name": "k2020-ohse-backend",
+  "description": "K2020 OHSE AI SaaS Backend",
+  "region": "oregon",
+  "plan": "starter",
+  "buildCommand": "npm install",
+  "startCommand": "npm start",
+  "env": {
+    "NODE_ENV": {
+      "description": "Node environment",
+      "value": "production"
+    },
+    "OPENAI_API_KEY": {
+      "description": "OpenAI API Key",
+      "required": true
+    },
+    "SUPABASE_URL": {
+      "description": "Supabase URL",
+      "required": true
+    },
+    "SUPABASE_ANON_KEY": {
+      "description": "Supabase Anonymous Key",
+      "required": true
+    },
+    "SUPABASE_SERVICE_KEY": {
+      "description": "Supabase Service Key",
+      "required": true
+    },
+    "PORT": {
+      "description": "Server port",
+      "value": "5000"
+    },
+    "CORS_ORIGIN": {
+      "description": "CORS origin (frontend URL)",
+      "value": "https://k2020-ohse.vercel.app"
+    }
+  }
+}
