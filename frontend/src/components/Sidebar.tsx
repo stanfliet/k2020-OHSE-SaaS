@@ -1,15 +1,26 @@
 import React, { useState } from "react";
+import { useAuth } from "../lib/AuthContext";
 import "../styles/Sidebar.css";
 
 interface SidebarProps {
-  activeTab: string;
-  onTabChange: (tab: string) => void;
+  currentPage?: string;
+  onNavigate?: (page: string) => void;
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
   userEmail?: string;
   onLogout?: () => void;
 }
 
-export function Sidebar({ activeTab, onTabChange, userEmail, onLogout }: SidebarProps) {
+export function Sidebar({ 
+  currentPage, 
+  onNavigate, 
+  activeTab, 
+  onTabChange, 
+  userEmail, 
+  onLogout 
+}: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { logout, user } = useAuth();
 
   const tabs = [
     { id: "dashboard", label: "Dashboard", icon: "📊" },
@@ -17,8 +28,23 @@ export function Sidebar({ activeTab, onTabChange, userEmail, onLogout }: Sidebar
     { id: "documents", label: "Documents", icon: "📄" },
     { id: "analysis", label: "AI Analysis", icon: "🤖" },
     { id: "generator", label: "Doc Generator", icon: "✨" },
-    { id: "compliance", label: "Compliance", icon: "✓" },
+    { id: "compliance", label: "Compliance", icon: "✅" },
   ];
+
+  const currentTab = currentPage || activeTab || "dashboard";
+
+  const handleTabChange = (tab: string) => {
+    onNavigate ? onNavigate(tab) : onTabChange?.(tab);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      onLogout?.();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
 
   return (
     <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
@@ -37,8 +63,8 @@ export function Sidebar({ activeTab, onTabChange, userEmail, onLogout }: Sidebar
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            className={`nav-item ${activeTab === tab.id ? "active" : ""}`}
-            onClick={() => onTabChange(tab.id)}
+            className={`nav-item ${currentTab === tab.id ? "active" : ""}`}
+            onClick={() => handleTabChange(tab.id)}
             title={tab.label}
           >
             <span className="nav-icon">{tab.icon}</span>
@@ -48,16 +74,14 @@ export function Sidebar({ activeTab, onTabChange, userEmail, onLogout }: Sidebar
       </nav>
 
       <div className="sidebar-footer">
-        {userEmail && !isCollapsed && (
+        {(user?.email || userEmail) && !isCollapsed && (
           <div className="user-info">
-            <p className="user-email">{userEmail}</p>
+            <p className="user-email">{user?.email || userEmail}</p>
           </div>
         )}
-        {onLogout && (
-          <button className="btn-logout" onClick={onLogout} title="Logout">
-            {!isCollapsed ? "Logout" : "🚪"}
-          </button>
-        )}
+        <button className="btn-logout" onClick={handleLogout} title="Logout">
+          {!isCollapsed ? "🚪 Logout" : "🚪"}
+        </button>
       </div>
     </aside>
   );

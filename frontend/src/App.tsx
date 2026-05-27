@@ -6,66 +6,69 @@ import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { CompliancePage } from "./pages/CompliancePage";
-import { getCurrentUser, signOut } from "./lib/supabase";
-import { uploadAndAnalyzeDocuments, generateDocuments, checkAPIHealth } from "./lib/api";
+import { AuthProvider, useAuth } from "./lib/AuthContext";
+import {
+  uploadAndAnalyzeDocuments,
+  generateDocuments,
+  checkAPIHealth,
+} from "./lib/api";
 import "./App.css";
 
 function AppContent() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const { isLoggedIn, isLoading: authLoading, user } = useAuth();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [isDocModalOpen, setIsDocModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [apiHealthy, setApiHealthy] = useState(true);
   const [extractedAnalysis, setExtractedAnalysis] = useState<any>(null);
-  const [generatedDocs, setGeneratedDocs] = useState<any>(null);
+
   const { showToast } = useToast();
 
-  // Check authentication on mount
   useEffect(() => {
-    const checkAuth = async () => {
-      const user = await getCurrentUser();
-      if (user) {
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-      }
-    };
-
-    checkAuth();
-
-    // Check API health
     const checkHealth = async () => {
       const healthy = await checkAPIHealth();
       setApiHealthy(healthy);
-      if (!healthy) {
-        showToast("Backend API is not responding", "warning");
-      }
+      if (!healthy) showToast("Backend API is not responding", "warning");
     };
     checkHealth();
   }, [showToast]);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    const checkAuth = async () => {
-      const user = await getCurrentUser();
-      setCurrentUser(user);
-      showToast("Login successful!", "success");
-    };
-    checkAuth();
-  };
+  if (authLoading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          background: "linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)",
+        }}
+      >
+        <div style={{ textAlign: "center", color: "white" }}>
+          <div
+            style={{
+              fontSize: "3rem",
+              marginBottom: "1rem",
+              animation: "spin 1s linear infinite",
+            }}
+          >
+            ⚙️
+          </div>
+          <h2>Loading K2020 OHSE...</h2>
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
 
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      setIsAuthenticated(false);
-      setCurrentUser(null);
-      setActiveTab("dashboard");
-      showToast("Logged out successfully", "info");
-    } catch (error) {
-      console.error("Logout error:", error);
-      showToast("Logout failed", "error");
-    }
-  };
+  if (!isLoggedIn) {
+    return <LoginPage onSuccess={() => window.location.reload()} />;
+  }
 
   const handleFileUpload = async (files: File[]) => {
     setIsLoading(true);
@@ -76,7 +79,7 @@ function AppContent() {
       setActiveTab("analysis");
     } catch (error) {
       console.error("Upload error:", error);
-      showToast("Failed to analyze documents. Ensure backend is running.", "error");
+      showToast("Failed to analyze documents", "error");
     } finally {
       setIsLoading(false);
     }
@@ -90,51 +93,27 @@ function AppContent() {
 
     setIsLoading(true);
     try {
-      const projectData = {
-        name: "Sample Project",
-        location: "Sample Location",
-        description: "Sample Description",
-      };
-
-      const result = await generateDocuments(projectData, extractedAnalysis);
-      setGeneratedDocs(result.documents);
+      const result = await generateDocuments(extractedAnalysis, "health_safety");
       showToast("Documents generated successfully!", "success");
       setActiveTab("generator");
     } catch (error) {
       console.error("Generation error:", error);
-      showToast("Failed to generate documents. Ensure backend is running.", "error");
+      showToast("Failed to generate documents", "error");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!isAuthenticated) {
-    return <LoginPage onSuccess={handleLogin} />;
-  }
-
-  return (
-    <div className="app">
-      <Sidebar
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        userEmail={currentUser?.email}
-        onLogout={handleLogout}
-      />
-
-      <main className="main-content">
-        {!apiHealthy && (
-          <div className="alert alert-danger" style={{ margin: "0" }}>
-            ⚠️ Backend API is not responding. Some features may not work.
-          </div>
-        )}
-
-        {activeTab === "dashboard" && <DashboardPage userEmail={currentUser?.email} />}
-
-        {activeTab === "projects" && <ProjectsPage />}
-
-        {activeTab === "compliance" && <CompliancePage />}
-
-        {activeTab === "documents" && (
+  const renderPage = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <DashboardPage user={user} onShowToast={showToast} />;
+      case "projects":
+        return <ProjectsPage />;
+      case "compliance":
+        return <CompliancePage />;
+      case "documents":
+        return (
           <div className="page-container">
             <h1>Document Upload & Analysis</h1>
             <button
@@ -144,7 +123,6 @@ function AppContent() {
             >
               📄 Upload Documents
             </button>
-
             {extractedAnalysis && (
               <div className="analysis-result">
                 <h2>Extracted Analysis</h2>
@@ -153,7 +131,6 @@ function AppContent() {
                 </div>
               </div>
             )}
-
             <DocumentModal
               isOpen={isDocModalOpen}
               onClose={() => setIsDocModalOpen(false)}
@@ -161,13 +138,11 @@ function AppContent() {
               isLoading={isLoading}
             />
           </div>
-        )}
-
-        {activeTab === "analysis" && (
+        );
+      case "analysis":
+        return (
           <div className="page-container">
             <h1>AI Analysis Center</h1>
-            <p>Advanced AI-powered document analysis and extraction</p>
-
             {extractedAnalysis && (
               <div className="analysis-result">
                 <h2>Current Analysis</h2>
@@ -180,56 +155,44 @@ function AppContent() {
                   disabled={isLoading}
                   style={{ marginTop: "1rem" }}
                 >
-                  ✨ Generate OHSE Documents
+                  Generate Documents
                 </button>
               </div>
             )}
+          </div>
+        );
+      default:
+        return <DashboardPage user={user} onShowToast={showToast} />;
+    }
+  };
 
-            {!extractedAnalysis && (
-              <p className="info-text">Upload documents from the Documents tab to analyze them.</p>
-            )}
+  return (
+    <div className="app">
+      <Sidebar
+        currentPage={activeTab}
+        onNavigate={setActiveTab}
+        userEmail={user?.email}
+      />
+      <main className="main-content">
+        {!apiHealthy && (
+          <div className="alert alert-danger" style={{ margin: "0" }}>
+            ⚠️ Backend API is not responding
           </div>
         )}
-
-        {activeTab === "generator" && (
-          <div className="page-container">
-            <h1>OHSE Document Generator</h1>
-            <button
-              className="btn btn-secondary"
-              onClick={handleGenerateDocuments}
-              disabled={isLoading || !extractedAnalysis}
-            >
-              ✨ Generate Documents
-            </button>
-
-            {generatedDocs && (
-              <div className="generated-docs">
-                <h2>Generated Documents</h2>
-                {Object.entries(generatedDocs).map(([key, content]) => (
-                  <details key={key} className="doc-item">
-                    <summary>{key.replace(/([A-Z])/g, " $1").toUpperCase()}</summary>
-                    <div className="doc-content">
-                      <pre>{String(content)}</pre>
-                    </div>
-                  </details>
-                ))}
-              </div>
-            )}
-
-            {!generatedDocs && (
-              <p className="info-text">Analyze documents first to generate OHSE compliance documents.</p>
-            )}
-          </div>
-        )}
+        {renderPage()}
       </main>
     </div>
   );
 }
 
-export default function App() {
+export function App() {
   return (
     <ToastProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ToastProvider>
   );
 }
+
+export default App;

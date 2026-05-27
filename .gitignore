@@ -20,3 +20,5 @@ uploads/
 .turbo/
 package-lock.json
 yarn.lock
+
+.fake

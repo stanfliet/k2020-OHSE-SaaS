@@ -1,4 +1,19 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
+
+
+// Health Check
+export async function checkAPIHealth(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/api/health`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("API health check failed:", error);
+    return false;
+  }
+}
 
 export async function uploadAndAnalyzeDocuments(files: File[]) {
   try {
@@ -49,11 +64,24 @@ export async function generateDocuments(projectData: any, analysisData: any) {
   }
 }
 
-export async function checkAPIHealth() {
+// Projects Management
+export async function getProjects() {
   try {
-    const response = await fetch(`${API_URL}/api/health`);
-    return response.ok;
+    const response = await fetch(`${API_URL}/api/projects`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data;
   } catch (error) {
-    return false;
+    console.error("Get projects error:", error);
+    return [];
   }
 }
+
+

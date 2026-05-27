@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { getProjects } from "../lib/api";
 import "../styles/Dashboard.css";
 
 interface DashboardPageProps {
-  userEmail?: string;
+  user?: any;
+  onShowToast?: (message: string, type?: "success" | "error" | "info") => void;
 }
 
 interface StatCardProps {
@@ -24,19 +26,54 @@ function StatCard({ label, value, icon, color }: StatCardProps) {
   );
 }
 
-export function DashboardPage({ userEmail }: DashboardPageProps) {
+export function DashboardPage({ user, onShowToast }: DashboardPageProps) {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState({
+    activeProjects: 0,
+    totalDocuments: 0,
+    totalAnalyses: 0,
+    generatedDocs: 0
+  });
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedProjects = await getProjects();
+      setProjects(fetchedProjects);
+      
+      const activeCount = fetchedProjects.filter(p => p.status === "active").length;
+      setStats({
+        activeProjects: activeCount,
+        totalDocuments: fetchedProjects.length * 2,
+        totalAnalyses: fetchedProjects.length,
+        generatedDocs: fetchedProjects.length
+      });
+    } catch (error) {
+      console.error("Failed to load dashboard:", error);
+      onShowToast?.("Failed to load dashboard data", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const userDisplayName = user?.user_metadata?.first_name || user?.email || "User";
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h1>Dashboard</h1>
-        <p className="welcome-text">Welcome back, {userEmail}</p>
+        <p className="welcome-text">Welcome back, {userDisplayName}!</p>
       </div>
 
       <div className="stats-grid">
-        <StatCard label="Active Projects" value="0" icon="📁" color="blue" />
-        <StatCard label="Documents Uploaded" value="0" icon="📄" color="green" />
-        <StatCard label="AI Analyses" value="0" icon="🤖" color="purple" />
-        <StatCard label="Generated Docs" value="0" icon="✨" color="orange" />
+        <StatCard label="Active Projects" value={stats.activeProjects} icon="📁" color="blue" />
+        <StatCard label="Documents Uploaded" value={stats.totalDocuments} icon="📄" color="green" />
+        <StatCard label="AI Analyses" value={stats.totalAnalyses} icon="🤖" color="purple" />
+        <StatCard label="Generated Docs" value={stats.generatedDocs} icon="✨" color="orange" />
       </div>
 
       <div className="dashboard-content">
