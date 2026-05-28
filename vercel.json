@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "framework": "vite",
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "frontend/dist/index.html",
+      "status": 200
+    }
+  ],
+  "env": {
+    "VITE_SUPABASE_URL": {
+      "type": "secret"
+    },
+    "VITE_SUPABASE_ANON_KEY": {
+      "type": "secret"
+    },
+    "VITE_API_URL": {
+      "type": "secret"
+    }
+  }
+}
