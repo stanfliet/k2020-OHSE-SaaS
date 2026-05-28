@@ -2,6 +2,8 @@
   "name": "k2020-ohse-frontend",
   "private": true,
   "version": "1.0.0",
+  "description": "K2020 OHSE Frontend Application",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
