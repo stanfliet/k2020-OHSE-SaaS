@@ -11,6 +11,14 @@ import OpenAI from "openai";
 // Load environment variables
 dotenv.config();
 
+import dotenv from "dotenv";
+dotenv.config();
+
+const isProduction = process.env.NODE_ENV === "production";
+
+console.log("Environment:", process.env.NODE_ENV);
+console.log("Production Mode:", isProduction);
+
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
