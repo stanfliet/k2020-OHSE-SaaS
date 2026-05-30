@@ -25,8 +25,8 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 const corsOrigin = process.env.NODE_ENV === "production" 
-  ? process.env.CORS_ORIGIN_PROD 
-  : process.env.CORS_ORIGIN || "http://localhost:5173";
+  ? [process.env.CORS_ORIGIN_PROD, "https://k2020-ohse-s.vercel.app"]
+  : [process.env.CORS_ORIGIN || "http://localhost:5173", "http://localhost:3000"];
 
 app.use(cors({
   origin: corsOrigin,
