@@ -31,8 +31,12 @@
       "value": "5000"
     },
     "CORS_ORIGIN": {
-      "description": "CORS origin (frontend URL)",
-      "value": "https://k2020-ohse.vercel.app"
+      "description": "CORS origin (localhost for development)",
+      "value": "http://localhost:5173"
+    },
+    "CORS_ORIGIN_PROD": {
+      "description": "CORS origin (production frontend URL)",
+      "value": "https://k2020-ohse-s.vercel.app"
     }
   }
 }
