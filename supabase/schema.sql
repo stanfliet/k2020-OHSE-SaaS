@@ -101,6 +101,8 @@ ALTER TABLE generated_documents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 
 -- Policies for user_profiles
+DROP POLICY IF EXISTS "Users can view own profile" ON user_profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON user_profiles;
 CREATE POLICY "Users can view own profile"
   ON user_profiles FOR SELECT
   USING (auth.uid() = id);
@@ -110,6 +112,10 @@ CREATE POLICY "Users can update own profile"
   USING (auth.uid() = id);
 
 -- Policies for projects
+DROP POLICY IF EXISTS "Users can view own projects" ON projects;
+DROP POLICY IF EXISTS "Users can create projects" ON projects;
+DROP POLICY IF EXISTS "Users can update own projects" ON projects;
+DROP POLICY IF EXISTS "Users can delete own projects" ON projects;
 CREATE POLICY "Users can view own projects"
   ON projects FOR SELECT
   USING (auth.uid() = user_id);
@@ -127,6 +133,9 @@ CREATE POLICY "Users can delete own projects"
   USING (auth.uid() = user_id);
 
 -- Policies for documents
+DROP POLICY IF EXISTS "Users can view own documents" ON documents;
+DROP POLICY IF EXISTS "Users can upload documents" ON documents;
+DROP POLICY IF EXISTS "Users can delete own documents" ON documents;
 CREATE POLICY "Users can view own documents"
   ON documents FOR SELECT
   USING (auth.uid() = user_id);
@@ -140,6 +149,8 @@ CREATE POLICY "Users can delete own documents"
   USING (auth.uid() = user_id);
 
 -- Policies for ai_analyses
+DROP POLICY IF EXISTS "Users can view own analyses" ON ai_analyses;
+DROP POLICY IF EXISTS "Users can create analyses" ON ai_analyses;
 CREATE POLICY "Users can view own analyses"
   ON ai_analyses FOR SELECT
   USING (auth.uid() = user_id);
@@ -149,6 +160,8 @@ CREATE POLICY "Users can create analyses"
   WITH CHECK (auth.uid() = user_id);
 
 -- Policies for generated_documents
+DROP POLICY IF EXISTS "Users can view own generated docs" ON generated_documents;
+DROP POLICY IF EXISTS "Users can create generated docs" ON generated_documents;
 CREATE POLICY "Users can view own generated docs"
   ON generated_documents FOR SELECT
   USING (auth.uid() = user_id);
@@ -158,6 +171,7 @@ CREATE POLICY "Users can create generated docs"
   WITH CHECK (auth.uid() = user_id);
 
 -- Policies for activity_logs
+DROP POLICY IF EXISTS "Users can view own logs" ON activity_logs;
 CREATE POLICY "Users can view own logs"
   ON activity_logs FOR SELECT
   USING (auth.uid() = user_id);
