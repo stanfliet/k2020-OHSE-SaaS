@@ -117,7 +117,7 @@ function AppContent() {
       case "dashboard":
         return <DashboardPage user={user} onShowToast={showToast} />;
       case "projects":
-        return <ProjectsPage />;
+        return <ProjectsPage onShowToast={showToast} />;
       case "compliance":
         return <CompliancePage />;
       case "documents":

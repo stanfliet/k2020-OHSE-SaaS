@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getProjects, createProject, deleteProject } from "../lib/api";
 import { ProjectCard } from "../components/ProjectCard";
 import "../styles/Projects.css";
 
@@ -11,57 +12,82 @@ interface Project {
   createdAt?: string;
 }
 
-export function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      name: "Construction Site A",
-      description: "High-rise residential building project",
-      location: "Downtown District",
-      status: "active",
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: "2",
-      name: "Industrial Facility B",
-      description: "Manufacturing plant safety compliance",
-      location: "Industrial Zone",
-      status: "active",
-      createdAt: new Date().toISOString(),
-    },
-  ]);
+interface ProjectsPageProps {
+  onShowToast?: (message: string, type?: "success" | "error" | "info") => void;
+}
 
+export function ProjectsPage({ onShowToast }: ProjectsPageProps) {
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     location: "",
   });
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  useEffect(() => {
+    loadProjects();
+  }, []);
+
+  const loadProjects = async () => {
+    setIsLoading(true);
+    try {
+      const result = await getProjects();
+      setProjects(result || []);
+    } catch (error) {
+      console.error("Failed to load projects:", error);
+      onShowToast?.("Unable to load projects", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
 
-    const newProject: Project = {
-      id: Math.random().toString(),
-      ...formData,
-      status: "active",
-      createdAt: new Date().toISOString(),
-    };
+    setIsLoading(true);
+    try {
+      const newProject = await createProject({
+        name: formData.name,
+        description: formData.description,
+        location: formData.location,
+      });
 
-    setProjects([...projects, newProject]);
-    setFormData({ name: "", description: "", location: "" });
-    setIsCreating(false);
+      setProjects([newProject, ...projects]);
+      setFormData({ name: "", description: "", location: "" });
+      setIsCreating(false);
+      onShowToast?.("Project created successfully", "success");
+    } catch (error) {
+      console.error("Create project failed:", error);
+      onShowToast?.("Failed to create project", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter((p) => p.id !== id));
+  const handleDeleteProject = async (id: string) => {
+    setIsLoading(true);
+    try {
+      await deleteProject(id);
+      setProjects(projects.filter((project) => project.id !== id));
+      onShowToast?.("Project deleted", "success");
+    } catch (error) {
+      console.error("Delete project failed:", error);
+      onShowToast?.("Failed to delete project", "error");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="projects-container">
       <div className="projects-header">
-        <h1>Projects</h1>
+        <div>
+          <h1>Projects</h1>
+          <p className="subtitle">Manage your OHSE construction projects</p>
+        </div>
         <button
           className="btn btn-primary"
           onClick={() => setIsCreating(!isCreating)}
@@ -115,13 +141,14 @@ export function ProjectsPage() {
             </div>
 
             <div className="form-actions">
-              <button type="submit" className="btn btn-primary">
-                Create Project
+              <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                {isLoading ? "Saving..." : "Create Project"}
               </button>
               <button
                 type="button"
                 className="btn btn-outline"
                 onClick={() => setIsCreating(false)}
+                disabled={isLoading}
               >
                 Cancel
               </button>
@@ -131,7 +158,9 @@ export function ProjectsPage() {
       )}
 
       <div className="projects-grid">
-        {projects.length === 0 ? (
+        {isLoading && projects.length === 0 ? (
+          <div className="loading-state">Loading projects...</div>
+        ) : projects.length === 0 ? (
           <div className="empty-state">
             <p>No projects yet. Create one to get started!</p>
           </div>

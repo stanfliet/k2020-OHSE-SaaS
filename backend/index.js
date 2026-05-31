@@ -6,6 +6,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import pdf from "pdf-parse";
 import dotenv from "dotenv";
+import { createClient } from "@supabase/supabase-js";
+import mammoth from "mammoth";
 import OpenAI from "openai";
 
 // Load environment variables
@@ -24,17 +26,25 @@ const __dirname = path.dirname(__filename);
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const prodOrigins = [process.env.CORS_ORIGIN_PROD, "https://k2020-ohse-s.vercel.app"].filter(Boolean);
-const corsOrigin = process.env.NODE_ENV === "production" 
-  ? prodOrigins
-  : [process.env.CORS_ORIGIN || "http://localhost:5173", "http://localhost:3000"];
+const allowedOrigins = new Set([
+  process.env.CORS_ORIGIN,
+  process.env.CORS_ORIGIN_PROD,
+  "http://localhost:5173",
+  "http://localhost:3000"
+].filter(Boolean));
 
-console.log("CORS Origins:", corsOrigin);
+console.log("Allowed CORS origins:", [...allowedOrigins]);
 
 app.use(cors({
-  origin: corsOrigin,
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
@@ -68,9 +78,31 @@ const upload = multer({
 });
 
 // Initialize OpenAI
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
+  { auth: { persistSession: false } }
+);
+
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+async function authenticate(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ success: false, error: "Missing authorization token" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  const { data, error } = await supabaseAdmin.auth.getUser(token);
+  if (error || !data?.user) {
+    return res.status(401).json({ success: false, error: "Invalid or expired token" });
+  }
+
+  res.locals.user = data.user;
+  next();
+}
 
 // Helper function to extract text from PDF
 async function extractTextFromPDF(filePath) {
@@ -86,9 +118,13 @@ async function extractTextFromPDF(filePath) {
 
 // Helper function to extract text from DOCX (basic implementation)
 async function extractTextFromDOCX(filePath) {
-  // For now, we'll return placeholder text
-  // In production, use docx-parser or similar library
-  return "DOCX content extraction would be implemented here";
+  try {
+    const result = await mammoth.extractRawText({ path: filePath });
+    return result.value || "";
+  } catch (error) {
+    console.error("Error extracting DOCX:", error);
+    return "";
+  }
 }
 
 // Helper function to extract text from text files
@@ -149,8 +185,78 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+// Projects API
+app.get("/api/projects", authenticate, async (req, res) => {
+  try {
+    const userId = res.locals.user.id;
+    const { data, error } = await supabaseAdmin
+      .from("projects")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error) {
+    console.error("Get projects error:", error);
+    res.status(500).json({ success: false, error: error.message || "Unable to fetch projects" });
+  }
+});
+
+app.post("/api/projects", authenticate, async (req, res) => {
+  try {
+    const userId = res.locals.user.id;
+    const { name, description, location, start_date, end_date, budget, contractor_name, contractor_contact } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ success: false, error: "Project name is required" });
+    }
+
+    const { data, error } = await supabaseAdmin.from("projects").insert([
+      {
+        user_id: userId,
+        name,
+        description,
+        location,
+        start_date,
+        end_date,
+        budget,
+        contractor_name,
+        contractor_contact,
+      }
+    ]).select().single();
+
+    if (error) throw error;
+
+    res.status(201).json({ success: true, project: data });
+  } catch (error) {
+    console.error("Create project error:", error);
+    res.status(500).json({ success: false, error: error.message || "Unable to create project" });
+  }
+});
+
+app.delete("/api/projects/:id", authenticate, async (req, res) => {
+  try {
+    const userId = res.locals.user.id;
+    const projectId = req.params.id;
+    const { error } = await supabaseAdmin
+      .from("projects")
+      .delete()
+      .eq("id", projectId)
+      .eq("user_id", userId);
+
+    if (error) throw error;
+
+    res.json({ success: true, projectId });
+  } catch (error) {
+    console.error("Delete project error:", error);
+    res.status(500).json({ success: false, error: error.message || "Unable to delete project" });
+  }
+});
+
 // File upload and analysis endpoint
-app.post("/api/upload-and-analyze", upload.array("files", 10), async (req, res) => {
+app.post("/api/upload-and-analyze", authenticate, upload.array("files", 10), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({
@@ -246,7 +352,7 @@ app.post("/api/upload-and-analyze", upload.array("files", 10), async (req, res) 
 });
 
 // Generate OHSE Documents endpoint
-app.post("/api/generate-documents", express.json(), async (req, res) => {
+app.post("/api/generate-documents", authenticate, express.json(), async (req, res) => {
   try {
     const { projectData, analysisData } = req.body;
 
