@@ -1,19 +1,6 @@
 // API utility functions
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export async function checkAPIHealth(): Promise<boolean> {
-  try {
-    const response = await fetch(`${API_URL}/api/health`, {
-      method: "GET",
-      headers: { "Content-Type": "application/json" },
-    });
-    return response.ok;
-  } catch (error) {
-    console.error("API health check failed:", error);
-    return false;
-  }
-}
-
 export async function uploadAndAnalyzeDocuments(files: File[]): Promise<any> {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
