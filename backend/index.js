@@ -48,6 +48,13 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+app.use((req, res, next) => {
+  console.log(
+    `[Request] ${req.method} ${req.originalUrl} origin=${req.headers.origin || "none"} auth=${!!req.headers.authorization}`
+  );
+  next();
+});
+
 // Setup file uploads
 const uploadsDir = process.env.UPLOAD_DIR || "./uploads";
 if (!fs.existsSync(uploadsDir)) {

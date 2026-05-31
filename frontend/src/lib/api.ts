@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
+console.log("API URL:", API_URL);
 
 async function getAuthHeaders() {
   try {
@@ -10,7 +11,9 @@ async function getAuthHeaders() {
       return {};
     }
     const token = data?.session?.access_token;
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    console.log("getAuthHeaders", { hasToken: !!token, headers });
+    return headers;
   } catch (error) {
     console.error("Auth header error:", error);
     return {};
