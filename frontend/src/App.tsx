@@ -6,6 +6,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
 import { CompliancePage } from "./pages/CompliancePage";
+import { GeneratorPage } from "./pages/GeneratorPage";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
 import {
   uploadAndAnalyzeDocuments,
@@ -21,6 +22,7 @@ function AppContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [apiHealthy, setApiHealthy] = useState(true);
   const [extractedAnalysis, setExtractedAnalysis] = useState<any>(null);
+  const [generatedDocuments, setGeneratedDocuments] = useState<Record<string, string> | null>(null);
 
   const { showToast } = useToast();
 
@@ -93,7 +95,13 @@ function AppContent() {
 
     setIsLoading(true);
     try {
-      const result = await generateDocuments(extractedAnalysis, "health_safety");
+      const projectData = {
+        name: "Uploaded Document Analysis",
+        source: "uploaded_documents",
+        generatedAt: new Date().toISOString(),
+      };
+      const result = await generateDocuments(projectData, extractedAnalysis);
+      setGeneratedDocuments(result.documents || null);
       showToast("Documents generated successfully!", "success");
       setActiveTab("generator");
     } catch (error) {
@@ -160,6 +168,10 @@ function AppContent() {
               </div>
             )}
           </div>
+        );
+      case "generator":
+        return (
+          <GeneratorPage documents={generatedDocuments} isLoading={isLoading} />
         );
       default:
         return <DashboardPage user={user} onShowToast={showToast} />;
