@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables FIRST, before any other imports
+
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import multer from "multer";
@@ -5,7 +8,6 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import pdf from "pdf-parse";
-import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
 import mammoth from "mammoth";
 import OpenAI from "openai";
@@ -25,8 +27,6 @@ import {
   qualityRouter,
   qsRouter,
 } from "./routes";
-
-dotenv.config();
 
 const isProduction = process.env.NODE_ENV === "production";
 console.log("Environment:", process.env.NODE_ENV);
