@@ -11,6 +11,8 @@ import { DashboardPage } from './pages/DashboardPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { CompliancePage } from './pages/CompliancePage';
 import { GeneratorPage } from './pages/GeneratorPage';
+import DocumentsModule from './pages/DocumentsModule';
+import QsModule from './pages/QsModule';
 
 // Layout component
 function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -96,10 +98,7 @@ function AppRoutes() {
 
       <Route path="/documents" element={
         <ProtectedLayout>
-          <div className="page-container">
-            <h1>📄 Document Upload & Analysis</h1>
-            <p>Document upload and analysis module</p>
-          </div>
+          <DocumentsModule />
         </ProtectedLayout>
       } />
 
@@ -160,6 +159,12 @@ function AppRoutes() {
             <h1>✓ Quality Management</h1>
             <p>Quality plans, ITPs, and NCRs</p>
           </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/qs" element={
+        <ProtectedLayout>
+          <QsModule />
         </ProtectedLayout>
       } />
 

@@ -30,6 +30,7 @@ export function Sidebar({
     { id: "dashboard", label: "Dashboard", icon: "📊", path: "/dashboard" },
     { id: "projects", label: "Projects", icon: "📁", path: "/projects" },
     { id: "documents", label: "Documents", icon: "📄", path: "/documents" },
+    { id: "qs", label: "QS Module", icon: "💰", path: "/qs" },
     { id: "analysis", label: "AI Analysis", icon: "🤖", path: "/analysis" },
     { id: "generator", label: "Doc Generator", icon: "✨", path: "/generator" },
     { id: "compliance", label: "Compliance", icon: "✅", path: "/compliance" },

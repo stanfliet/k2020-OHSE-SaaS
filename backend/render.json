@@ -1,7 +1,11 @@
 {
   "startCommand": "npm start",
-  "buildCommand": "echo 'No build needed'",
+  "buildCommand": "npm install && npm run build",
   "envVars": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    },
     {
       "key": "OPENAI_API_KEY"
     },
@@ -12,10 +16,13 @@
       "key": "SUPABASE_ANON_KEY"
     },
     {
-      "key": "SUPABASE_SERVICE_KEY"
+      "key": "SUPABASE_SERVICE_ROLE_KEY"
     },
     {
       "key": "CORS_ORIGIN"
+    },
+    {
+      "key": "CORS_ORIGIN_PROD"
     }
   ]
 }

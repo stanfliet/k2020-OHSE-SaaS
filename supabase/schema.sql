@@ -399,6 +399,18 @@ CREATE TABLE IF NOT EXISTS toolbox_talks (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- BOQ Records (Bill of Quantities)
+CREATE TABLE IF NOT EXISTS boq_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  items_count INTEGER,
+  total_value DECIMAL(15,2),
+  assumptions JSONB,
+  created_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Enable RLS on new tables
 ALTER TABLE company_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE company_directors ENABLE ROW LEVEL SECURITY;
@@ -414,6 +426,7 @@ ALTER TABLE non_conformances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ppe_register ENABLE ROW LEVEL SECURITY;
 ALTER TABLE visitor_register ENABLE ROW LEVEL SECURITY;
 ALTER TABLE toolbox_talks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE boq_records ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for Company Profiles
 DROP POLICY IF EXISTS "Users can view own company" ON company_profiles;
@@ -510,6 +523,16 @@ CREATE POLICY "Users can view toolbox talks"
   ON toolbox_talks FOR SELECT
   USING (EXISTS (SELECT 1 FROM projects WHERE id = project_id AND user_id = auth.uid()));
 
+-- RLS Policies for BOQ Records
+DROP POLICY IF EXISTS "Users can view boq records" ON boq_records;
+DROP POLICY IF EXISTS "Users can create boq records" ON boq_records;
+CREATE POLICY "Users can view boq records"
+  ON boq_records FOR SELECT
+  USING (EXISTS (SELECT 1 FROM projects WHERE id = project_id AND user_id = auth.uid()));
+CREATE POLICY "Users can create boq records"
+  ON boq_records FOR INSERT
+  WITH CHECK (auth.uid() = created_by);
+
 -- Create Indexes for performance
 CREATE INDEX IF NOT EXISTS idx_projects_user_id ON projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_documents_project_id ON documents(project_id);
@@ -532,3 +555,5 @@ CREATE INDEX IF NOT EXISTS idx_quality_plans_project_id ON quality_plans(project
 CREATE INDEX IF NOT EXISTS idx_non_conformances_project_id ON non_conformances(project_id);
 CREATE INDEX IF NOT EXISTS idx_visitor_register_project_id ON visitor_register(project_id);
 CREATE INDEX IF NOT EXISTS idx_toolbox_talks_project_id ON toolbox_talks(project_id);
+CREATE INDEX IF NOT EXISTS idx_boq_records_project_id ON boq_records(project_id);
+CREATE INDEX IF NOT EXISTS idx_boq_records_created_by ON boq_records(created_by);

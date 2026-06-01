@@ -1,12 +1,16 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
+    "module": "ES2020",
     "rootDir": "./",
     "outDir": "./dist",
     "strict": false,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "declaration": true,
+    "sourceMap": true
   },
-  "include": ["server.ts"]
+  "include": ["*.ts"],
+  "exclude": ["node_modules"]
 }
