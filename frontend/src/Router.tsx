@@ -1,0 +1,194 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './lib/AuthContext';
+import { ThemeProvider } from './lib/ThemeContext';
+import { ToastProvider } from './components/Toast';
+import { Sidebar } from './components/Sidebar';
+
+// Pages
+import { LoginPage } from './pages/LoginPage';
+import { DashboardPage } from './pages/DashboardPage';
+import { ProjectsPage } from './pages/ProjectsPage';
+import { CompliancePage } from './pages/CompliancePage';
+import { GeneratorPage } from './pages/GeneratorPage';
+
+// Layout component
+function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const { isLoggedIn, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          height: '100vh',
+          background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
+        }}
+      >
+        <div style={{ textAlign: 'center', color: 'white' }}>
+          <div
+            style={{
+              fontSize: '3rem',
+              marginBottom: '1rem',
+              animation: 'spin 1s linear infinite',
+            }}
+          >
+            ⚙️
+          </div>
+          <h2>Loading K2020 OHSE...</h2>
+          <style>{`
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <div style={{ display: 'flex' }}>
+      <Sidebar />
+      <main style={{ flex: 1 }}>
+        {children}
+      </main>
+    </div>
+  );
+}
+
+// App Routes
+function AppRoutes() {
+  const { isLoggedIn } = useAuth();
+
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route 
+        path="/login" 
+        element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <LoginPage onSuccess={() => window.location.reload()} />} 
+      />
+
+      {/* Protected Routes */}
+      <Route path="/dashboard" element={
+        <ProtectedLayout>
+          <DashboardPage user={undefined} onShowToast={() => {}} />
+        </ProtectedLayout>
+      } />
+
+      <Route path="/projects" element={
+        <ProtectedLayout>
+          <ProjectsPage onShowToast={() => {}} />
+        </ProtectedLayout>
+      } />
+
+      <Route path="/compliance" element={
+        <ProtectedLayout>
+          <CompliancePage />
+        </ProtectedLayout>
+      } />
+
+      <Route path="/documents" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>📄 Document Upload & Analysis</h1>
+            <p>Document upload and analysis module</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/analysis" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>🔍 AI Analysis Center</h1>
+            <p>AI analysis and document review</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/generator" element={
+        <ProtectedLayout>
+          <GeneratorPage documents={null} isLoading={false} />
+        </ProtectedLayout>
+      } />
+
+      <Route path="/safety-files" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>🛡️ Safety File Manager</h1>
+            <p>Generate and manage safety files</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/training" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>📚 Training Management</h1>
+            <p>Manage training records and certifications</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/incidents" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>⚠️ Incident Management</h1>
+            <p>Report and track incidents</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/environmental" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>🌿 Environmental Management</h1>
+            <p>Environmental plans and compliance</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/quality" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>✓ Quality Management</h1>
+            <p>Quality plans, ITPs, and NCRs</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      <Route path="/company-profile" element={
+        <ProtectedLayout>
+          <div className="page-container">
+            <h1>🏢 Company Profile</h1>
+            <p>Manage company information</p>
+          </div>
+        </ProtectedLayout>
+      } />
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
+      <Route path="*" element={<Navigate to={isLoggedIn ? "/dashboard" : "/login"} replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
+  );
+}
