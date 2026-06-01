@@ -1,16 +1,42 @@
+import dotenv from 'dotenv';
 import { Request, Response, NextFunction } from 'express';
 import { createClient } from '@supabase/supabase-js';
+
+// Load environment variables (defensive - should already be loaded by index.ts)
+dotenv.config();
 
 interface RequestWithUser extends Request {
   user?: any;
   role?: string;
 }
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  { auth: { persistSession: false } }
-);
+let supabaseAdmin: any = null;
+
+// Lazy initialize Supabase client - only create when first needed
+export function getSupabaseAdmin() {
+  if (!supabaseAdmin) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    
+    if (!url || !key) {
+      console.error('[RBAC] Supabase credentials missing!');
+      console.error(`SUPABASE_URL: ${url ? '✓ Set' : '✗ MISSING'}`);
+      console.error(`SUPABASE_SERVICE_ROLE_KEY: ${key ? '✓ Set' : '✗ MISSING'}`);
+      throw new Error(
+        `Supabase initialization failed. Check backend/.env file.\n` +
+        `SUPABASE_URL: ${url ? '✓ Set' : '✗ MISSING'}\n` +
+        `SUPABASE_SERVICE_ROLE_KEY: ${key ? '✓ Set' : '✗ MISSING'}`
+      );
+    }
+    
+    console.log('[RBAC] Initializing Supabase client with URL:', url.substring(0, 30) + '...');
+    
+    supabaseAdmin = createClient(url, key, {
+      auth: { persistSession: false }
+    });
+  }
+  return supabaseAdmin;
+}
 
 // Role hierarchy (lower number = higher privilege)
 const ROLE_HIERARCHY: Record<string, number> = {
@@ -37,7 +63,8 @@ export async function authenticateUser(
     }
 
     const token = authHeader.split(' ')[1];
-    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase.auth.getUser(token);
 
     if (error || !data?.user) {
       return res.status(401).json({ 
@@ -49,7 +76,7 @@ export async function authenticateUser(
     req.user = data.user;
     
     // Get user profile with role
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', data.user.id)
@@ -129,7 +156,8 @@ export function isCompanyOwner() {
         });
       }
 
-      const { data: company, error } = await supabaseAdmin
+      const supabase = getSupabaseAdmin();
+      const { data: company, error } = await supabase
         .from('company_profiles')
         .select('user_id')
         .eq('id', req.params.companyId)
@@ -170,7 +198,8 @@ export function isProjectMember() {
         });
       }
 
-      const { data: project, error } = await supabaseAdmin
+      const supabase = getSupabaseAdmin();
+      const { data: project, error } = await supabase
         .from('projects')
         .select('user_id')
         .eq('id', req.params.projectId)

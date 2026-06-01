@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config(); // Load env vars (defensive - should already be loaded by index.ts)
+
 import { Router, Request, Response, NextFunction } from "express";
 import { createClient } from "@supabase/supabase-js";
 import { authenticateUser } from "./rbac";
