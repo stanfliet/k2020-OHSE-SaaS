@@ -1,0 +1,37 @@
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+}
+
+.loadingContent {
+  text-align: center;
+  color: white;
+}
+
+.loadingSpinner {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Layout */
+.layoutContainer {
+  display: flex;
+}
+
+.layoutMain {
+  flex: 1;
+}
