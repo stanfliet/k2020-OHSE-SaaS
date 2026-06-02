@@ -126,7 +126,6 @@ export function Sidebar({
             <p className="user-email">{user?.email || userEmail}</p>
           </div>
         )}
-        )}
         <button className="btn-logout" onClick={handleLogout} title="Logout">
           {!isCollapsed ? "🚪 Logout" : "🚪"}
         </button>
