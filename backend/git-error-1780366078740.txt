@@ -1,0 +1,2 @@
+> git -c user.useConfigOnly=true commit --quiet --allow-empty-message --file -
+fatal: cannot lock ref 'HEAD': is at 34588c47abb8db70f9e9d8fa9d45ec8f40919565 but expected 0d3c83753f13c97f15b32314d5ed3c8e61c31e2a
