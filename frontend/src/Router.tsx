@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './lib/AuthContext';
 import { ThemeProvider } from './lib/ThemeContext';
 import { ToastProvider } from './components/Toast';
 import { Sidebar } from './components/Sidebar';
+import './styles/Router.css';
 
 // Pages
 import { LoginPage } from './pages/LoginPage';
@@ -20,32 +21,10 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100vh',
-          background: 'linear-gradient(135deg, #1e40af 0%, #7c3aed 100%)',
-        }}
-      >
-        <div style={{ textAlign: 'center', color: 'white' }}>
-          <div
-            style={{
-              fontSize: '3rem',
-              marginBottom: '1rem',
-              animation: 'spin 1s linear infinite',
-            }}
-          >
-            ⚙️
-          </div>
+      <div className="loading-container">
+        <div className="loading-content">
+          <div className="loading-spinner">⚙️</div>
           <h2>Loading K2020 OHSE...</h2>
-          <style>{`
-            @keyframes spin {
-              from { transform: rotate(0deg); }
-              to { transform: rotate(360deg); }
-            }
-          `}</style>
         </div>
       </div>
     );
@@ -56,9 +35,9 @@ function ProtectedLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="protected-layout">
       <Sidebar />
-      <main style={{ flex: 1 }}>
+      <main className="protected-main">
         {children}
       </main>
     </div>
