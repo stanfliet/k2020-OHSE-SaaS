@@ -27,6 +27,7 @@ import {
   qualityRouter,
   qsRouter,
 } from "./routes";
+import integrationRouter from "./integration-routes";
 
 const isProduction = process.env.NODE_ENV === "production";
 console.log("Environment:", process.env.NODE_ENV);
@@ -175,6 +176,7 @@ app.use("/api/compliance", complianceRouter);
 app.use("/api/environmental", environmentalRouter);
 app.use("/api/quality", qualityRouter);
 app.use("/api/qs", qsRouter);
+app.use("/api/integration", integrationRouter);
 
 // Document upload and analysis endpoint
 app.post(
